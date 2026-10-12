@@ -1,0 +1,59 @@
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+
+local function getLines()
+    local gui = player:FindFirstChild("PlayerGui")
+    local pool = gui and gui:FindFirstChild("PoolGameUI")
+    local tableUI = pool and pool:FindFirstChild("Table")
+    local poolTable = tableUI and tableUI:FindFirstChild("PoolTable")
+    local overlay = poolTable and poolTable:FindFirstChild("Overlay")
+    local aim = overlay and overlay:FindFirstChild("AimOverlay")
+
+    if not aim then
+        return nil, nil
+    end
+
+    local original = aim:FindFirstChild("ObjectLine")
+    if not original then
+        return nil, nil
+    end
+
+    local clone = aim:FindFirstChild("ObjectLineCustom")
+
+    if not clone then
+        clone = original:Clone()
+        clone.Name = "ObjectLineCustom"
+        clone.Parent = aim
+    end
+
+    return original, clone
+end
+
+RunService:UnbindFromRenderStep("UpdateCustomLine")
+
+RunService:BindToRenderStep(
+    "UpdateCustomLine",
+    Enum.RenderPriority.Last.Value,
+    function()
+        local original, clone = getLines()
+
+        if not original or not clone then
+            return
+        end
+
+        clone.Position = original.Position
+        clone.Rotation = original.Rotation
+        clone.AnchorPoint = original.AnchorPoint
+        clone.Visible = original.Visible
+        clone.ZIndex = original.ZIndex
+
+        local sourceSize = original.Size
+
+        clone.Size = UDim2.new(
+            50, sourceSize.X.Offset,
+            sourceSize.Y.Scale, sourceSize.Y.Offset
+        )
+    end
+)
